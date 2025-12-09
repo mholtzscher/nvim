@@ -1,6 +1,7 @@
 return {
   {
     "mistricky/codesnap.nvim",
+    lazy = true,
     build = "make",
     init = function()
       require("which-key").add({
