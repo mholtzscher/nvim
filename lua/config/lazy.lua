@@ -1,41 +1,120 @@
+-- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
-  -- bootstrap lazy.nvim
-  -- stylua: ignore
-  vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath })
+if not vim.uv.fs_stat(lazypath) then
+  vim.fn.system({
+    "git",
+    "clone",
+    "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git",
+    "--branch=stable",
+    lazypath,
+  })
 end
-vim.opt.rtp:prepend(vim.env.LAZY or lazypath)
+vim.opt.rtp:prepend(lazypath)
+
+-- Load options before plugins (for mapleader etc.)
+require("config.options")
 
 require("lazy").setup({
   spec = {
-    -- add LazyVim and import its plugins
-    { "LazyVim/LazyVim", import = "lazyvim.plugins" },
-    -- import any extras modules here
-    -- { import = "lazyvim.plugins.extras.lang.typescript" },
-    -- { import = "lazyvim.plugins.extras.lang.json" },
-    -- { import = "lazyvim.plugins.extras.ui.mini-animate" },
-    -- import/override with your plugins
-    { import = "plugins" },
+    ---------------------------------------------------------------------------
+    -- Core Plugins (replaces LazyVim base)
+    ---------------------------------------------------------------------------
+    { import = "plugins.core.ui" },
+    { import = "plugins.core.editor" },
+    { import = "plugins.core.coding" },
+    { import = "plugins.core.treesitter" },
+    { import = "plugins.core.lsp" },
+    { import = "plugins.core.formatting" },
+    { import = "plugins.core.linting" },
+    
+    ---------------------------------------------------------------------------
+    -- Completion (Blink.cmp)
+    ---------------------------------------------------------------------------
+    { import = "plugins.coding.blink" },
+    
+    ---------------------------------------------------------------------------
+    -- Picker (Snacks picker)
+    ---------------------------------------------------------------------------
+    { import = "plugins.editor.snacks-picker" },
+    
+    ---------------------------------------------------------------------------
+    -- Editor Extras
+    ---------------------------------------------------------------------------
+    { import = "plugins.editor.aerial" },
+    { import = "plugins.editor.mini-files" },
+    { import = "plugins.editor.refactoring" },
+    
+    ---------------------------------------------------------------------------
+    -- Coding Extras
+    ---------------------------------------------------------------------------
+    { import = "plugins.coding.mini-surround" },
+    { import = "plugins.coding.yanky" },
+    
+    ---------------------------------------------------------------------------
+    -- DAP (Debugging)
+    ---------------------------------------------------------------------------
+    { import = "plugins.dap" },
+    
+    ---------------------------------------------------------------------------
+    -- Testing
+    ---------------------------------------------------------------------------
+    { import = "plugins.test" },
+    
+    ---------------------------------------------------------------------------
+    -- AI (Sidekick + Copilot)
+    ---------------------------------------------------------------------------
+    { import = "plugins.ai.sidekick" },
+    
+    ---------------------------------------------------------------------------
+    -- Language Support
+    ---------------------------------------------------------------------------
+    { import = "plugins.lang.go" },
+    { import = "plugins.lang.typescript" },
+    { import = "plugins.lang.nix" },
+    { import = "plugins.lang.docker" },
+    { import = "plugins.lang.json" },
+    { import = "plugins.lang.yaml" },
+    { import = "plugins.lang.markdown" },
+    { import = "plugins.lang.terraform" },
+    { import = "plugins.lang.sql" },
+    { import = "plugins.lang.toml" },
+    { import = "plugins.lang.nushell" },
+    
+    ---------------------------------------------------------------------------
+    -- Colorscheme
+    ---------------------------------------------------------------------------
+    { import = "plugins.colorscheme" },
+    
+    ---------------------------------------------------------------------------
+    -- Custom plugins (from your existing config)
+    ---------------------------------------------------------------------------
+    { import = "plugins.dashboard" },
+    { import = "plugins.oil" },
+    { import = "plugins.multicursor" },
+    { import = "plugins.kulala" },
+    { import = "plugins.codesnap" },
+    { import = "plugins.buf" },
+    { import = "plugins.vscode-diff" },
+    { import = "plugins.java" },
+    { import = "plugins.kdl" },
   },
   defaults = {
-    -- By default, only LazyVim plugins will be lazy-loaded. Your custom plugins will load during startup.
-    -- If you know what you're doing, you can set this to `true` to have all your custom plugins lazy-loaded by default.
     lazy = false,
-    -- It's recommended to leave version=false for now, since a lot the plugin that support versioning,
-    -- have outdated releases, which may break your Neovim install.
-    version = false, -- always use the latest git commit
-    -- version = "*", -- try installing the latest stable version for plugins that support semver
+    version = false,
   },
-  install = { colorscheme = { "tokyonight", "habamax" } },
-  checker = { enabled = true }, -- automatically check for plugin updates
+  install = { colorscheme = { "catppuccin", "habamax" } },
+  checker = {
+    enabled = true,
+    notify = false,
+  },
+  change_detection = {
+    notify = false,
+  },
   performance = {
     rtp = {
-      -- disable some rtp plugins
       disabled_plugins = {
         "gzip",
-        -- "matchit",
-        -- "matchparen",
-        -- "netrwPlugin",
         "tarPlugin",
         "tohtml",
         "tutor",
@@ -43,4 +122,13 @@ require("lazy").setup({
       },
     },
   },
+})
+
+-- Load keymaps and autocmds after lazy
+vim.api.nvim_create_autocmd("User", {
+  pattern = "VeryLazy",
+  callback = function()
+    require("config.keymaps")
+    require("config.autocmds")
+  end,
 })
